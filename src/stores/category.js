@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, shallowRef, toRef } from 'vue'
 import api from '../services/api'
 
-export const useCategoryStore = defineStore('category', () => {
+export const useCategoriesStore = defineStore('category', () => {
   function createNewRecord() {
     return {
       name: '',
@@ -47,7 +47,8 @@ export const useCategoryStore = defineStore('category', () => {
       //Update Function
       try {
         await api.post(`/update-category/${formModel.value.id}`, formModel.value)
-        location.reload()
+        // location.reload()
+        fetchCategories()
       } catch (error) {
         console.error('Failed to Save Category.', error?.response?.message)
       }
@@ -55,7 +56,8 @@ export const useCategoryStore = defineStore('category', () => {
       //Save Function
       try {
         await api.post('/create-category', formModel.value)
-        location.reload()
+        // location.reload()
+        fetchCategories()
       } catch (error) {
         console.error('Failed to Save Category.', error?.response?.message)
       }
@@ -70,10 +72,10 @@ export const useCategoryStore = defineStore('category', () => {
     categories.value = []
   }
 
-  async function getCategories() {
+  async function fetchCategories() {
     try {
       const response = await api.get('/read-categories')
-      categories.value = response.data.Category
+      categories.value = response.data.categories
     } catch (error) {
       console.error('Failed to fetch Categories', error?.response?.message)
     }
@@ -89,7 +91,7 @@ export const useCategoryStore = defineStore('category', () => {
     remove,
     save,
     reset,
-    getCategories
+    fetchCategories
 
   }
 })

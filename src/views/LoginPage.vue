@@ -19,7 +19,7 @@
 
             <v-text-field
               v-model="password"
-              :type="showPassword ? 'text' : 'password'"
+              type=password
               label="Password"
               required
               prepend-inner-icon="mdi-lock"
@@ -44,57 +44,57 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-
+import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api'
 import TokenService from '../services/tokenService'
-import router from '../router/index'
+
+const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
 const error = ref(null)
+const snackbar = ref(false)
 const email = ref('')
 const password = ref('')
-const user = ref(null)
-const abilities = ref({})
+const showPassword = ref(false)
+
+function showError(message) {
+  error.value = message
+  snackbar.value = true
+}
 
 async function login() {
-    loading.value = true
-    error.value = null
-    
-    try {
-      // Ensure email and password are not empty
-      if (!email.value || !password.value) {
-        throw new Error('Email and password are required')
-      }
-      
-      const response = await api.post('login-user', {email: email.value, password: password.value})
-      
-      // Check if we have user and token in the response
-      if (response.data.token && response.data.user) {
-        const { token, user: userData, abilities: userAbilities } = response.data
-                
-        // Set user data and abilities
-        user.value = userData
-        abilities.value = userAbilities || {}
-        
-        // Save token
-        TokenService.setToken(token)
-        TokenService.setUser(userData)
-        // TokenService.setAbilities(userAbilities)
-          window.location.href = '/welcome'
-        // router.push('/welcome')
-      } else {
-        throw new Error('Invalid response format from server')
-      }
-    } catch (err) {
-      console.error('Login error:', err.response?.data || err.message)
-      error.value = err.response?.data?.message || err.message || 'Login failed'
-      throw err
-    } finally {
-      loading.value = false
-    }
+  if (!email.value || !password.value) {
+    showError('Email and password are required')
+    return
   }
 
+  loading.value = true
+  error.value = null
+  try {
+    const response = await api.post('login-user', { email: email.value, password: password.value })
+    const { token, user: userData, abilities: userAbilities } = response.data
+
+    if (token && userData) {
+      TokenService.setToken(token)
+      TokenService.setUser(userData)
+      TokenService.setAbilities(userAbilities)
+      window.location.href = '/welcome'
+    } else {
+      showError('Invalid response format from server')
+    }
+  } catch (err) {
+    console.error('Login error:', err.response?.data || err.message)
+    showError(err.response?.data?.message || err.message || 'Login failed')
+  } finally {
+    loading.value = false
+  }
+}
+
 function clear() {
-  initialState.value
+  email.value = ''
+  password.value = ''
+  error.value = null
+  snackbar.value = false
 }
 </script>

@@ -39,7 +39,7 @@
 
         <template v-slot:item.actions="{ item }">
           <div class="d-flex ga-2 justify-end">
-            <v-icon
+            <v-icon v-if="can('admin')"
               color="medium-emphasis"
               icon="mdi-pencil"
               size="small"
@@ -100,9 +100,11 @@
 </template>
 <script setup>
 import { onMounted } from 'vue'
-import { useRoleStore } from '../stores/role'
+import { useRolesStore } from '../stores/role'
+import { useAuth } from '@/services/authService'
 
-const roleStore = useRoleStore()
+const roleStore = useRolesStore()
+const {can }= useAuth()
 
 const headers = [
   { title: 'ID', key: 'id', align: 'start' },

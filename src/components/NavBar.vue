@@ -86,7 +86,6 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import TokenService from '../services/tokenService'
 
 const props = defineProps({
@@ -97,27 +96,15 @@ const props = defineProps({
 })
 
 const drawer = ref(true)
-const router = useRouter()
 
 // Read authentication data from localStorage
 const currentUser = ref(TokenService.getUser() || {})
-const abilities = ref(TokenService.getAbilities() || {})
 
 const isAuthenticated = computed(() => TokenService.isAuthenticated())
 
-const isAdmin = computed(() => {
-  return (
-    currentUser.value?.role?.slug === 'admin' ||
-    abilities.value?.admin === true
-  )
-})
 
 const userName = computed(() => {
   return currentUser.value?.name || 'Guest'
-})
-
-const userRole = computed(() => {
-  return currentUser.value?.role?.name || 'User'
 })
 
 const userAvatar = computed(() => {
@@ -185,28 +172,24 @@ const allPaths = [
     text: 'Users',
     route: '/users',
     requiresAuth: true,
-    requiredAbility: ['admin', 'editor', 'user'],
   },
   {
     icon: 'mdi-shape',
     text: 'Categories',
     route: '/categories',
     requiresAuth: true,
-    requiredAbility: ['admin', 'editor', 'user'],
   },  
   {
     icon: 'mdi-shield-account',
     text: 'Roles',
     route: '/roles',
     requiresAuth: true,
-    // requiredAbility: ['admin', 'editor', 'user'],
   },
   {
-    icon: 'mdi-receipt-text',
-    text: 'Orders',
-    route: '/orders',
+    icon: 'mdi-shopping-outline',
+    text: 'Products',
+    route: '/products',
     requiresAuth: true,
-    requiredAbility: ['admin', 'editor', 'user'],
   },
 ]
 
@@ -229,19 +212,7 @@ const filteredPaths = computed(() => {
     if (path.requiresAuth) {
       if (!loggedIn) {
         return false
-      }
-
-      // Apply permission checks when required
-      if (path.requiredAbility) {
-        const required = path.requiredAbility
-
-        const hasPermission = required.some((ability) => {
-          return abilities.value?.[ability] === true
-        })
-
-        return hasPermission || isAdmin.value
-      }
-
+      }   
       return true
     }
 
@@ -254,7 +225,6 @@ function handleLogout() {
   TokenService.removeToken()
 
   currentUser.value = {}
-  abilities.value = {}
   window.location.href = '/login'
   // router.push({ name: 'LoginPage' })
 }

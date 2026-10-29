@@ -1,4 +1,3 @@
-import router from '../router/index';
 import api from './api';
 
 class TokenService {
@@ -69,6 +68,13 @@ class TokenService {
       console.error('Failed to load user info:', error);
       return null;
     }
+  }
+
+    // True if the stored user's role is one of the given role names
+  hasRole(roles) {
+    const roleName = this.getUser()?.role?.name?.toLowerCase();
+    const list = (Array.isArray(roles) ? roles : [roles]).map(r => r.toLowerCase());
+    return !!roleName && list.includes(roleName);
   }
 }
 

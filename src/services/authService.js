@@ -21,7 +21,7 @@ export function useAuth() {
   
   // Check if user is an admin
   const isAdmin = computed(() => {
-    return user.value && user.value.role?.slug === 'admin'
+    return user.value && user.value.role?.name === 'admin'
   })
 
   // Get current user
@@ -32,7 +32,8 @@ export function useAuth() {
 
   // Check if user has a specific ability
   function can(ability) {
-    return abilities.value[ability] === true
+    console.log("abilities: ",TokenService.getAbilities())
+    return TokenService.getAbilities()[ability] === true
   }
 
   // Login method

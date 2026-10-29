@@ -2,8 +2,7 @@
   <v-container>
     <v-sheet border rounded>
       <v-data-table
-        :headers="headers"
-        :hide-default-footer="categoryStore.categories.length < 11"
+        :headers="headers"        
         :items="categoryStore.categories"
       >
         <template v-slot:top>
@@ -19,7 +18,7 @@
               Popular categories
             </v-toolbar-title>
 
-            <v-btn v-if="AuthService.hasAbility('admin')"
+            <v-btn
               class="me-2"
               prepend-icon="mdi-plus"
               rounded="lg"
@@ -40,14 +39,14 @@
 
         <template v-slot:item.actions="{ item }">
           <div class="d-flex ga-2 justify-end">
-            <v-icon v-if="AuthService.hasAbility(['editor', 'admin'])"
+            <v-icon
               color="medium-emphasis"
               icon="mdi-pencil"
               size="small"
               @click="categoryStore.edit(item.id)"
             ></v-icon>
 
-            <v-icon v-if="AuthService.hasAbility('admin')"
+            <v-icon 
               color="medium-emphasis"
               icon="mdi-delete"
               size="small"
@@ -102,20 +101,18 @@
 </template>
 <script setup>
 import { onMounted } from 'vue'
-import { useCategoryStore } from '../stores/category'
-import AuthService from '../services/authService'
+import { useCategoriesStore } from '../stores/category'
 
-const categoryStore = useCategoryStore()
+const categoryStore = useCategoriesStore()
 
 const headers = [
   { title: 'ID', key: 'id', align: 'start' },
   { title: 'Name', key: 'name' },
-  { title: 'Address', key: 'address' },
   { title: 'Actions', key: 'actions', align: 'end', sortable: false },
 ]
 
 onMounted(() => {
-  categoryStore.getCategories()
+  categoryStore.fetchCategories()
 })
 
 

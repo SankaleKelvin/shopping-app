@@ -51,7 +51,7 @@ const userPhotoUrl = computed(() => {
 
 function logout() {
   TokenService.removeToken()
-  router.push({ name: 'LoginPage' })
+  window.location.href='/login'
 }
 </script>
 

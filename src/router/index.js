@@ -9,6 +9,7 @@ import TokenService from '../services/tokenService.js'
 import UsersPage from '../views/UsersPage.vue'
 import RolesPage from '../views/RolesPage.vue'
 import CategoriesPage from '../views/CategoriesPage.vue'
+import ProductsPage from '@/views/ProductsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -52,7 +53,7 @@ const router = createRouter({
       component: UsersPage,
       meta: {
         requiresAuth: true,
-        requiredAbility: ['admin', 'editor', 'user'],
+        requiredAbility: ['admin'],
       },
     },
     {
@@ -61,7 +62,7 @@ const router = createRouter({
       component: CategoriesPage,
       meta: {
         requiresAuth: true,
-        requiredAbility: ['admin', 'editor', 'user'],
+        requiredAbility: ['admin', 'customer'],
       },
     },
     {
@@ -70,18 +71,18 @@ const router = createRouter({
       component: RolesPage,
       meta: {
         requiresAuth: true,
-        requiredAbility: ['admin', 'editor', 'user'],
+        requiredAbility: ['admin'],
       },
-    },    
+    },  
     {
-      path: '/roles',
-      name: 'RolesPage',
-      component: RolesPage,
+      path: '/products',
+      name: 'ProductsPage',
+      component: ProductsPage,
       meta: {
         requiresAuth: true,
-        // requiredAbility: ['admin', 'editor', 'user'],
+        requiredAbility: ['admin', 'customer'],
       },
-    },
+    },  
   ],
 })
 // Navigation guard

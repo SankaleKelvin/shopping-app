@@ -1,129 +1,135 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef, toRef } from 'vue'
 import api from '../services/api'
+import api_2 from '../services/api_2'
 
-export const useUserStore = defineStore('user', () => {
-  function createNewRecord() {
-    return {
+export const useUsersStore = defineStore('users', {
+  state: () => ({
+    users: [],
+    // dialogs & UI state
+    dialog: false,
+    dialogDelete: false,
+    // editedIndex will hold the user id when editing, -1 when creating
+    editedIndex: -1,
+    editedItem: {
+      id: '',
       name: '',
       email: '',
-      role_id: '',
-      user_image: '',
       password: '',
       password_confirmation: '',
-    }
-  }
-
-  const users = ref([])
-  const formModel = ref(createNewRecord())
-  const dialog = shallowRef(false)
-  const dialogDelete = shallowRef(false)
-  const editedIndex = -1
-  const itemToDelete = ''
-  const isEditing = toRef(() => !!formModel.value.id)
-
-  function add() {
-    formModel.value = createNewRecord()
-    dialog.value = true
-  }
-
-  function edit(id) {
-    const found = users.value.find((user) => user.id === id)
-
-    formModel.value = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      role_id: found.role_id,
-      user_image: '',
+      is_active: true,
+      role_id: null,
+      user_image: null, // stored path
+    },
+    defaultItem: {
+      id: '',
+      name: '',
+      email: '',
       password: '',
       password_confirmation: '',
-    }
+      is_active: true,
+      role_id: null,
+      user_image: null,
+    },
+    // snackbars
+    snackbarCreate: false,
+    snackbarUpdate: false,
+    snackbarDelete: false,
+    // delete target id
+    deletingId: null,
+  }),
 
-    dialog.value = true
-  }
-
-  async function save() {
-    if (isEditing.value) {
-      //Update Function
-      // try {
-      //   await api.post(`/updateUser/${formModel.value.id}`, formModel.value)
-      //   location.reload()
-      // } catch (error) {
-      //   console.error('Failed to Save User.', error?.response?.message)
-      // }
+  actions: {
+    async fetchUsers() {
       try {
-        const response = await axios.post(
-          `http://127.0.0.1:8000/api/updateUser/${formModel.value.id}`,
-          formModel.value,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          },
-        )
-      } catch (error) {
-        console.error('Failed to Save User.', error?.response?.message)
+        const resp = await api.get('/read-users')
+        // Expect array
+        this.users = resp.data.users
+      } catch (err) {
+        console.error('fetchUsers error', err)
       }
-    } else {
-      //Save Function
+    },
+
+    async createUser(formData) {
       try {
-        await api.post('/register', formModel.value)
-        location.reload()
-      } catch (error) {
-        console.error('Failed to Save User.', error?.response?.message)
+        const resp = await api_2.post('/create-user', formData)
+        await this.fetchUsers()
+        this.snackbarCreate = true
+      } catch (err) {
+        console.error('createUser error', err)
+        throw err
       }
-    }
+    },
 
-    dialog.value = false
-  }
+    async updateUser(id, formData) {
+      try {
+        const resp = await api_2.post(`/update-user/${id}`, formData)
 
-  function reset() {
-    dialog.value = false
-    formModel.value = createNewRecord()
-    users.value = []
-  }
+        await this.fetchUsers()
+        this.snackbarUpdate = true
+      } catch (err) {
+        console.error('updateUser error', err)
+        throw err
+      }
+    },
 
-  async function getUsers() {
-    try {
-      const response = await api.get('/getUser')
-      users.value = response.data.User
-    } catch (error) {
-      console.error('Failed to fetch Users', error?.response?.message)
-    }
-  }
+    async deleteUser(id) {
+      try {
+        await api_2.delete(`/deleteUser/${id}`)
+        const idx = this.users.findIndex((u) => u.id == id)
+        if (idx !== -1) this.users.splice(idx, 1)
+        this.snackbarDelete = true
+      } catch (err) {
+        console.error('deleteUser error', err)
+        throw err
+      } finally {
+        this.dialogDelete = false
+        this.deletingId = null
+      }
+    },
 
-  function deleteUser(id) {
-    editedIndex.value = id
-    itemToDelete.value = id
-    dialogDelete.value = true
-  }
+    async editItem(id) {
+      try {
+        // Get single user from API
+        const resp = await api.get(`/read-user/${id}`)
+        const data = resp.data.user
+        // normalise to editedItem shape
+        this.editedIndex = id
+        this.editedItem = {
+          id: data.id,
+          name: data.name || '',
+          email: data.email || '',
+          password: '', // leave blank for update
+          password_confirmation: '', // leave blank for update
+          is_active: data.is_active ?? true,
+          role_id: data.role_id ?? null,
+          user_image: data.user_image ?? null,
+        }
+        this.dialog = true
+      } catch (err) {
+        console.error('editItem error', err)
+      }
+    },
 
-  async function remove(id) {
-    //Delete Function
-    try {
-      await api.delete(`/deleteUser/${id}`)
-      location.reload()
-    } catch (error) {
-      console.error('Failed to Delete User.', error?.response?.message)
-    }
-  }
+    openDialog() {
+      this.editedIndex = -1
+      this.editedItem = { ...this.defaultItem }
+      this.dialog = true
+    },
 
-  function closeDelete() {
-    dialogDelete.value = false
-  }
+    closeDialog() {
+      this.dialog = false
+      this.editedItem = { ...this.defaultItem }
+      this.editedIndex = -1
+    },
 
-  return {
-    users,
-    formModel,
-    isEditing,
-    dialog,
-    dialogDelete,
-    add,
-    edit,
-    remove,
-    save,
-    reset,
-    getUsers,
-  }
+    openDelete(id) {
+      this.deletingId = id
+      this.dialogDelete = true
+    },
+
+    closeDelete() {
+      this.dialogDelete = false
+      this.deletingId = null
+    },
+  },
 })

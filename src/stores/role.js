@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, shallowRef, toRef } from 'vue'
 import api from '../services/api'
 
-export const useRoleStore = defineStore('role', () => {
+export const useRolesStore = defineStore('role', () => {
   function createNewRecord() {
     return {
       name: '',
